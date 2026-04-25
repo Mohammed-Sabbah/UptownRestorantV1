@@ -439,7 +439,7 @@ export function AdminProductsTab({ products, categories, branches, settings, add
                       }}
                     />
                     <span style={{ fontSize: '12px', color: '#999', marginTop: '4px' }}>
-                      💡 هاد الرقم بيحدد كم برغر بتعرض في modal الوجبة العائلية
+                      💡 هاد الرقم بيحدد كم بيرجر بتعرض في modal الوجبة العائلية
                     </span>
                   </div>
                 </div>

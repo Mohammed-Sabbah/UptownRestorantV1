@@ -835,7 +835,7 @@ var UI = window.UI || {
                 const state = burgersState[i];
                 const typeName = state.selectedType ? Lang.localized(state.selectedType.nameAr, state.selectedType.nameEn) : '';
                 const addonsCount = state.selectedAddOns.length;
-                const burgerLabel = isAr ? `البرغر ${i + 1}` : `Burger ${i + 1}`;
+                const burgerLabel = isAr ? `البيرجر ${i + 1}` : `Burger ${i + 1}`;
                 const summary = typeName ? `${typeName}${addonsCount > 0 ? ` • ${addonsCount} ${isAr ? 'إضافة' : 'extras'}` : ''}` : '';
 
                 html += `

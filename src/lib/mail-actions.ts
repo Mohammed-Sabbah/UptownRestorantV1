@@ -55,7 +55,7 @@ export async function sendOrderInvoiceEmail(order: any, items: any[], branch: an
                         `<span style="background:#fee2e2;color:#b91c1c;padding:2px 8px;border-radius:6px;font-weight:700;font-size:11px;margin:2px;display:inline-block;">🚫 ${w.nameAr}</span>`
                     ).join('');
                     return `<div style="padding:5px 0;border-bottom:1px dashed #eee;">
-                        <span style="font-weight:900;color:#8B0000;">🍔 برغر ${burger.index}:</span>
+                        <span style="font-weight:900;color:#8B0000;">🍔 بيرجر ${burger.index}:</span>
                         ${typeName ? `<span style="font-weight:700;color:#333;margin:0 6px;">${typeName}</span>` : ''}
                         ${addonsHtmlInner ? `<div style="margin-top:3px;">${addonsHtmlInner}</div>` : ''}
                         ${withoutHtmlInner ? `<div style="margin-top:3px;">${withoutHtmlInner}</div>` : ''}

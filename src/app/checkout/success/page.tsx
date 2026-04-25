@@ -207,7 +207,7 @@ function SuccessContent() {
                                   }}>
                                     <div>
                                       <span style={{ fontWeight: 900, color: '#8B0000' }}>
-                                        🍔 {isAr ? `برغر ${burger.index}` : `Burger ${burger.index}`}:
+                                        🍔 {isAr ? `بيرجر ${burger.index}` : `Burger ${burger.index}`}:
                                       </span>
                                       <span style={{ fontWeight: 700, color: '#333', marginRight: '6px', marginLeft: '6px' }}>
                                         {isAr ? burger.typeAr : burger.typeEn}

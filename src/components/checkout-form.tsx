@@ -494,7 +494,7 @@ export default function CheckoutForm({ branch, settings, lang: initialLang }: Pr
                                     ? `🚫 ${isAr ? 'بدون' : 'Without'}: ${burger.without.map((w: any) => isAr ? w.nameAr : w.nameEn).join('، ')}`
                                     : '';
                                 const parts = [typeName, addons, without].filter(Boolean).join(' | ');
-                                return `   🍔 *${isAr ? `برغر ${burger.index}` : `Burger ${burger.index}`}:* ${parts || (isAr ? 'بدون تخصيص' : 'No customization')}`;
+                                return `   🍔 *${isAr ? `بيرجر ${burger.index}` : `Burger ${burger.index}`}:* ${parts || (isAr ? 'بدون تخصيص' : 'No customization')}`;
                             }).join('%0A');
                             if (familyData.note) formattedDetails += `%0A   📝 ${familyData.note}`;
                         } else {

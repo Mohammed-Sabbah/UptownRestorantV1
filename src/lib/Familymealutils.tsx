@@ -52,7 +52,7 @@ export function FamilyMealDetails({ addonDetails, isAr = true }: { addonDetails:
                         {/* اسم البرغر والنوع */}
                         <div>
                             <span style={{ fontWeight: 900, color: '#8B0000' }}>
-                                🍔 {isAr ? `برغر ${burger.index}` : `Burger ${burger.index}`}:
+                                🍔 {isAr ? `بيرجر ${burger.index}` : `Burger ${burger.index}`}:
                             </span>
                             {typeName && (
                                 <span style={{ fontWeight: 700, color: '#333', marginRight: '6px', marginLeft: '6px' }}>
@@ -132,7 +132,7 @@ export function familyMealToHtml(addonDetails: string, isAr = true): string {
         return `
       <div style="padding:6px 0;border-bottom:1px dashed #eee;">
         <div>
-          <span style="font-weight:900;color:#8B0000;">🍔 ${isAr ? `برغر ${burger.index}` : `Burger ${burger.index}`}:</span>
+          <span style="font-weight:900;color:#8B0000;">🍔 ${isAr ? `بيرجر ${burger.index}` : `Burger ${burger.index}`}:</span>
           ${typeName ? `<span style="font-weight:700;color:#333;margin:0 6px;">${typeName}</span>` : ''}
         </div>
         ${addonsHtml ? `<div style="margin-top:4px;">${addonsHtml}</div>` : ''}
