@@ -5,6 +5,7 @@ import { useState, useMemo, useEffect, useCallback } from "react";
 import { updateOrderStatus, getOrderSummary } from "@/lib/order-actions";
 import { Search, Filter, Calendar, CreditCard, LayoutGrid, RefreshCw, X } from "lucide-react";
 import { FamilyMealDetails, parseFamilyMeal } from "@/lib/Familymealutils";
+import { PrintReceiptButton } from "../PrintReceiptButton";
 
 type Props = {
   orders?: Order[]; // optional — now fetched internally
@@ -402,6 +403,8 @@ export function AdminIntelligenceTab({ orders: initialOrders = [], branches, rol
                       >
                         تفاصيل
                       </button>
+
+                      <PrintReceiptButton order={order} />
 
                       {!isCashier && (
                         <button
