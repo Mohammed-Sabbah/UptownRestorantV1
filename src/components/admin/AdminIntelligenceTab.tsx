@@ -403,18 +403,20 @@ export function AdminIntelligenceTab({ orders: initialOrders = [], branches, rol
                         تفاصيل
                       </button>
 
-                      <button
-                        onClick={() => handleDeleteOrder(order.id)}
-                        style={{
-                          width: '32px', height: '32px', borderRadius: '8px', border: 'none',
-                          background: '#fee2e2', color: '#b91c1c', cursor: 'pointer',
-                          display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
-                        }}
-                        onMouseOver={(e) => e.currentTarget.style.background = '#fecaca'}
-                        onMouseOut={(e) => e.currentTarget.style.background = '#fee2e2'}
-                      >
-                        <X size={14} />
-                      </button>
+                      {!isCashier && (
+                        <button
+                          onClick={() => handleDeleteOrder(order.id)}
+                          style={{
+                            width: '32px', height: '32px', borderRadius: '8px', border: 'none',
+                            background: '#fee2e2', color: '#b91c1c', cursor: 'pointer',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+                          }}
+                          onMouseOver={(e) => e.currentTarget.style.background = '#fecaca'}
+                          onMouseOut={(e) => e.currentTarget.style.background = '#fee2e2'}
+                        >
+                          <X size={14} />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
