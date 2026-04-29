@@ -357,15 +357,15 @@ function OrderStatusContent() {
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", borderTop: "1px solid #f0f0f0", paddingTop: "12px", marginTop: '12px', flexDirection: 'column', gap: '8px' }}>
             {/* خصم الفاتورة */}
-            {Number(order.invoice_discount_amount) > 0 && (
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: '#059669', fontWeight: 700 }}>
+            {order.invoice_discount_amount > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', color: '#059669', fontWeight: 700 }}>
+                <span>{isAr ? 'خصم الفاتورة' : 'Invoice Discount'}</span>
                 <span>
-                  🎁 {isAr ? 'خصم الفاتورة' : 'Invoice Discount'}
+                  -{Number(order.invoice_discount_amount).toFixed(2)} ₪
                   {order.invoice_discount_type === 'percentage'
-                    ? ` (${Math.round((Number(order.invoice_discount_amount) / ((Number(order.invoice_discount_amount) + (order.order_items || []).reduce((a: number, i: any) => a + (i.price * i.quantity), 0)) || 1)) * 100)}%)`
-                    : ` (${Number(order.invoice_discount_amount).toFixed(2)} ₪)`}
+                    ? ` (${Math.round((Number(order.invoice_discount_amount) / ((Number(order.total_amount) - Number(order.delivery_fee || 0) + Number(order.invoice_discount_amount)) || 1)) * 100)}%)`
+                    : ""}
                 </span>
-                <span>-{Number(order.invoice_discount_amount).toFixed(2)} ₪</span>
               </div>
             )}
             {/* خصم التوصيل */}

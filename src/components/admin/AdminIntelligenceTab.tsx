@@ -496,8 +496,8 @@ export function AdminIntelligenceTab({ orders: initialOrders = [], branches, rol
                   <div style={{ fontWeight: 900, color: '#059669' }}>
                     -{Number(selectedOrder.invoice_discount_amount).toFixed(2)} ₪
                     {selectedOrder.invoice_discount_type === 'percentage'
-                      ? ` (${Math.round(Number(selectedOrder.invoice_discount_amount) / ((selectedOrder.order_items || []).reduce((s: number, i: any) => s + (Number(i.original_price ?? i.price) * i.quantity), 0) || 1) * 100)}%)`
-                      : ` (${Number(selectedOrder.invoice_discount_amount).toFixed(2)} ₪)`}
+                      ? ` (${Math.round((Number(selectedOrder.invoice_discount_amount) / ((Number(selectedOrder.total_amount) - Number(selectedOrder.delivery_fee || 0) + Number(selectedOrder.invoice_discount_amount)) || 1)) * 100)}%)`
+                      : ""}
                   </div>
                 </div>
               )}

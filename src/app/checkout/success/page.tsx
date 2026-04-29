@@ -289,7 +289,7 @@ function SuccessContent() {
                   <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                     🎁 {isAr ? 'خصم الفاتورة' : 'Invoice Discount'}
                     {invoiceDiscountType === 'percentage'
-                      ? ` (${Math.round((invoiceDiscountAmount / (itemsSubtotal || 1)) * 100)}%)`
+                      ? ` (${Math.round((invoiceDiscountAmount / ((Number(orderData.total_amount) - deliveryFee + invoiceDiscountAmount) || 1)) * 100)}%)`
                       : ` (${invoiceDiscountAmount.toFixed(2)} ₪)`}
                   </span>
                   <span>-{invoiceDiscountAmount.toFixed(2)} ₪</span>

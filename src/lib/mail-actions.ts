@@ -128,7 +128,7 @@ export async function sendOrderInvoiceEmail(order: any, items: any[], branch: an
                         <tr>
                             <td style="padding: 15px 10px 5px; font-size: 14px; color: #059669; font-weight: 700;">
                                 🎁 خصم الفاتورة${o.invoiceDiscountType === 'percentage'
-                ? ` (${items.length > 0 ? Math.round(Number(o.invoiceDiscountAmount) / (items.reduce((s, i) => s + (Number(i.original_price ?? i.price) * (i.quantity || 1)), 0) || 1) * 100) : ''}%)`
+                ? ` (${Math.round((Number(o.invoiceDiscountAmount) / ((Number(o.totalAmount) - Number(o.deliveryFee) + Number(o.invoiceDiscountAmount)) || 1)) * 100)}%)`
                 : ` (${Number(o.invoiceDiscountAmount).toFixed(2)} ₪)`}
                             </td>
                             <td style="padding: 15px 10px 5px; font-size: 14px; color: #059669; font-weight: 700; text-align: left;">
