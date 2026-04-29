@@ -138,6 +138,7 @@ function mapProduct(row: Record<string, any>): Product {
   const productData: any = {
     id: Number(row.id),
     categoryId: Number(row.category_id),
+    branchId: row.branch_id !== null && row.branch_id !== undefined ? Number(row.branch_id) : null, // ← أضف هاد
     nameAr: String(row.name_ar || ""),
     nameEn: String(row.name_en || ""),
     descriptionAr: String(row.description_ar || ""),

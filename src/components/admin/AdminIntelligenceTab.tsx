@@ -68,6 +68,7 @@ export function AdminIntelligenceTab({ orders: initialOrders = [], branches, rol
         invoiceDiscountType: o.invoice_discount_type,
         branch: o.branch ? { ...o.branch, nameAr: o.branch.name_ar, nameEn: o.branch.name_en } : undefined,
         items: o.order_items ?? undefined,
+        notes: o.notes || null,
       }));
 
       setOrders(mapped);
@@ -398,6 +399,8 @@ export function AdminIntelligenceTab({ orders: initialOrders = [], branches, rol
                         style={{ height: '32px', padding: '0 12px', background: '#000', color: '#fff', borderRadius: '8px', border: 'none', fontSize: '12px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}
                         onClick={async () => {
                           const res = await getOrderSummary(order.id);
+                          console.log("order data:", res.order); // ← شوف إذا notes موجود
+
                           if (res.success) setSelectedOrder(res.order);
                         }}
                       >
@@ -492,7 +495,9 @@ export function AdminIntelligenceTab({ orders: initialOrders = [], branches, rol
                   <label style={{ fontSize: '11px', color: '#999', fontWeight: 800, display: 'block', marginBottom: '4px', textTransform: 'uppercase' }}>خصم الفاتورة</label>
                   <div style={{ fontWeight: 900, color: '#059669' }}>
                     -{Number(selectedOrder.invoice_discount_amount).toFixed(2)} ₪
-                    {selectedOrder.invoice_discount_type === 'percentage' ? ' (نسبة مئوية)' : ' (مبلغ ثابت)'}
+                    {selectedOrder.invoice_discount_type === 'percentage'
+                      ? ` (${Math.round(Number(selectedOrder.invoice_discount_amount) / ((selectedOrder.order_items || []).reduce((s: number, i: any) => s + (Number(i.original_price ?? i.price) * i.quantity), 0) || 1) * 100)}%)`
+                      : ` (${Number(selectedOrder.invoice_discount_amount).toFixed(2)} ₪)`}
                   </div>
                 </div>
               )}
@@ -507,9 +512,21 @@ export function AdminIntelligenceTab({ orders: initialOrders = [], branches, rol
             <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
               {selectedOrder.order_items?.map((item: any, idx: number) => (
                 <div key={idx} style={{ padding: '20px', borderRadius: '24px', border: '1px solid #eee', background: '#fff' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', alignItems: 'flex-start' }}>
                     <span style={{ fontWeight: 900, fontSize: '1.1rem' }}>{item.quantity}x {item.product_name_ar}</span>
-                    <span style={{ fontWeight: 900, color: '#8B0000' }}>{item.price * item.quantity} ₪</span>
+                    <div style={{ textAlign: 'end', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      {item.original_price && Number(item.original_price) > Number(item.price) && (
+                        <>
+                          <span style={{ textDecoration: 'line-through', opacity: 0.4, fontSize: '12px', fontWeight: 600 }}>
+                            {(Number(item.original_price) * item.quantity).toFixed(0)} ₪
+                          </span>
+                          <span style={{ color: '#059669', fontSize: '11px', fontWeight: 700 }}>
+                            خصم {Math.round((1 - Number(item.price) / Number(item.original_price)) * 100)}%
+                          </span>
+                        </>
+                      )}
+                      <span style={{ fontWeight: 900, color: '#8B0000' }}>{(Number(item.price) * item.quantity).toFixed(0)} ₪</span>
+                    </div>
                   </div>
 
                   {item.addon_details && (
@@ -537,6 +554,27 @@ export function AdminIntelligenceTab({ orders: initialOrders = [], branches, rol
                 </div>
               ))}
             </div>
+
+            {/* 📝 ملاحظة الفاتورة */}
+            {selectedOrder.notes && (
+              <div style={{
+                marginTop: '20px',
+                padding: '20px',
+                borderRadius: '20px',
+                background: '#FFFBEB',
+                border: '1px solid #FDE68A',
+              }}>
+                <label style={{
+                  fontSize: '11px', color: '#92400E', fontWeight: 800,
+                  display: 'block', marginBottom: '8px', textTransform: 'uppercase'
+                }}>
+                  📝 ملاحظة على الطلب
+                </label>
+                <p style={{ margin: 0, fontWeight: 700, color: '#78350F', lineHeight: '1.6' }}>
+                  {selectedOrder.notes}
+                </p>
+              </div>
+            )}
 
             <button
               onClick={() => setSelectedOrder(null)}

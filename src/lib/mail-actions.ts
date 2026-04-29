@@ -33,7 +33,10 @@ export async function sendOrderInvoiceEmail(order: any, items: any[], branch: an
     const itemsHtml = items.map(item => {
         const name = item.productNameAr || item.product_name_ar || "منتج";
         const qty = item.quantity || 1;
-        const price = item.price || 0;
+        const price = Number(item.price || 0);
+        const originalPrice = Number(item.originalPrice || item.original_price || 0);
+        const hasItemDiscount = originalPrice > 0 && originalPrice > price;
+        const discountPct = hasItemDiscount ? Math.round((1 - price / originalPrice) * 100) : 0;
         const addonDetails = item.addonDetails || item.addon_details || '';
 
         let addonsHtml = '';
@@ -81,7 +84,13 @@ export async function sendOrderInvoiceEmail(order: any, items: any[], branch: an
                     <div style="font-weight:700;">${name} x ${qty}</div>
                     ${addonsHtml}
                 </td>
-                <td style="padding: 12px 10px; border-bottom: 1px solid #eee; text-align: left; vertical-align:top;">${price} ₪</td>
+                <td style="padding: 12px 10px; border-bottom: 1px solid #eee; text-align: left; vertical-align:top;">
+                    ${hasItemDiscount ? `
+                        <div style="text-decoration:line-through;opacity:0.45;font-size:12px;">${(originalPrice * qty).toFixed(2)} ₪</div>
+                        <div style="color:#059669;font-size:11px;font-weight:700;">خصم ${discountPct}%</div>
+                    ` : ''}
+                    <div style="font-weight:${hasItemDiscount ? '800' : '400'};color:${hasItemDiscount ? '#8B0000' : 'inherit'};">${(price * qty).toFixed(2)} ₪</div>
+                </td>
             </tr>
         `;
     }).join('');
@@ -118,7 +127,9 @@ export async function sendOrderInvoiceEmail(order: any, items: any[], branch: an
                         ${o.invoiceDiscountAmount > 0 ? `
                         <tr>
                             <td style="padding: 15px 10px 5px; font-size: 14px; color: #059669; font-weight: 700;">
-                                🎁 خصم الفاتورة${o.invoiceDiscountType === 'percentage' ? '' : ' (مبلغ ثابت)'}
+                                🎁 خصم الفاتورة${o.invoiceDiscountType === 'percentage'
+                ? ` (${items.length > 0 ? Math.round(Number(o.invoiceDiscountAmount) / (items.reduce((s, i) => s + (Number(i.original_price ?? i.price) * (i.quantity || 1)), 0) || 1) * 100) : ''}%)`
+                : ` (${Number(o.invoiceDiscountAmount).toFixed(2)} ₪)`}
                             </td>
                             <td style="padding: 15px 10px 5px; font-size: 14px; color: #059669; font-weight: 700; text-align: left;">
                                 -${Number(o.invoiceDiscountAmount).toFixed(2)} ₪

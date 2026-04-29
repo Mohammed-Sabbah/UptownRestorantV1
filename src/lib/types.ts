@@ -118,6 +118,7 @@ export type Order = {
   paymentMethod: "Cash" | "Card" | "palpay";
   paymentStatus: "Pending" | "Paid";
   createdAt: string;
+  notes?: string | null;        // ← أضف هاد
   branch?: Branch;
   items?: OrderItem[];
 };

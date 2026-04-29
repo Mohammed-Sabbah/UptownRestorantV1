@@ -87,6 +87,9 @@ function SuccessContent() {
   const invoiceDiscountAmount = Number(orderData?.invoice_discount_amount ?? 0);
   const invoiceDiscountType = orderData?.invoice_discount_type ?? "fixed";
   const deliveryFee = Number(orderData?.delivery_fee ?? 0);
+  const deliveryDiscountAmount = Number(orderData?.delivery_discount_amount ?? 0);
+  const deliveryDiscountType = orderData?.delivery_discount_type ?? null;
+  const originalDeliveryFee = deliveryDiscountAmount > 0 ? deliveryFee + deliveryDiscountAmount : deliveryFee;
 
   if (loading) {
     return (
@@ -173,7 +176,7 @@ function SuccessContent() {
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px' }}>
                       <div style={{ textAlign: isAr ? 'right' : 'left' }}>
                         <div style={{ fontWeight: 800, color: '#000' }}>{isAr ? oi.product_name_ar : oi.product_name_en}</div>
-                        <div style={{ fontSize: '12px', color: '#999', display: 'flex', gap: '6px', alignItems: 'center' }}>
+                        <div style={{ fontSize: '12px', color: '#999', display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
                           <span>{oi.quantity} x</span>
                           {hasDiscount && (
                             <span style={{ textDecoration: 'line-through', opacity: 0.5 }}>{Number(oi.original_price).toFixed(2)}</span>
@@ -181,6 +184,14 @@ function SuccessContent() {
                           <span style={{ color: hasDiscount ? '#059669' : '#999', fontWeight: hasDiscount ? 700 : 400 }}>
                             {Number(oi.price).toFixed(2)}
                           </span>
+                          {hasDiscount && (() => {
+                            const discPct = Math.round((1 - Number(oi.price) / Number(oi.original_price)) * 100);
+                            return (
+                              <span style={{ background: '#dcfce7', color: '#166534', padding: '1px 6px', borderRadius: '6px', fontWeight: 700, fontSize: '10px' }}>
+                                {discPct}% OFF
+                              </span>
+                            );
+                          })()}
                         </div>
                       </div>
                       <div style={{ fontWeight: 800, color: '#000' }}>{(Number(oi.price) * oi.quantity).toFixed(2)} ₪</div>
@@ -272,25 +283,40 @@ function SuccessContent() {
                 <span>{isAr ? 'المجموع' : 'Subtotal'}</span>
                 <span>{itemsSubtotal.toFixed(2)} ₪</span>
               </div>
-              {discountAmount > 0 && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: '#059669', fontWeight: 700, marginBottom: '8px' }}>
-                  <span>{isAr ? 'خصم الفرع' : 'Branch Discount'}</span>
-                  <span>-{discountAmount.toFixed(2)} ₪</span>
-                </div>
-              )}
+
               {invoiceDiscountAmount > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: '#059669', fontWeight: 700, marginBottom: '8px' }}>
-                  <span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                     🎁 {isAr ? 'خصم الفاتورة' : 'Invoice Discount'}
-                    {invoiceDiscountType === 'percentage' ? '' : ''}
+                    {invoiceDiscountType === 'percentage'
+                      ? ` (${Math.round((invoiceDiscountAmount / (itemsSubtotal || 1)) * 100)}%)`
+                      : ` (${invoiceDiscountAmount.toFixed(2)} ₪)`}
                   </span>
                   <span>-{invoiceDiscountAmount.toFixed(2)} ₪</span>
+                </div>
+              )}
+              {deliveryDiscountAmount > 0 && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: '#059669', fontWeight: 700, marginBottom: '8px' }}>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    🚚 {isAr ? 'خصم التوصيل' : 'Delivery Discount'}
+                    {deliveryDiscountType === 'percentage' && ` (${Math.round((deliveryDiscountAmount / (originalDeliveryFee || 1)) * 100)}%)`}
+                    {deliveryDiscountType === 'fixed' && ` (${deliveryDiscountAmount.toFixed(2)} ₪)`}
+                    {deliveryDiscountType === 'free' && ` (${isAr ? 'مجاني' : 'Free'})`}
+                  </span>
+                  <span>-{deliveryDiscountAmount.toFixed(2)} ₪</span>
                 </div>
               )}
               {deliveryFee > 0 ? (
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: '#666', marginBottom: '8px' }}>
                   <span>{isAr ? 'رسوم التوصيل' : 'Delivery'}</span>
-                  <span>+{deliveryFee.toFixed(2)} ₪</span>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    {deliveryDiscountAmount > 0 && (
+                      <span style={{ textDecoration: 'line-through', opacity: 0.5, fontSize: '12px' }}>
+                        {originalDeliveryFee.toFixed(2)} ₪
+                      </span>
+                    )}
+                    <span style={{ fontWeight: 800 }}>+{deliveryFee.toFixed(2)} ₪</span>
+                  </div>
                 </div>
               ) : orderData?.order_type === 'Delivery' && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: '#059669', fontWeight: 700, marginBottom: '8px' }}>

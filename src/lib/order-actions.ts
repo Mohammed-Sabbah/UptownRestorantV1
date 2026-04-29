@@ -299,12 +299,15 @@ export async function saveOrderAction(orderData: any, items: any[], captchaToken
                 table_number: orderData.tableNumber || null,
                 total_amount: totalAmount,
                 delivery_fee: orderData.deliveryFee ?? 0,
+                delivery_discount_amount: orderData.deliveryDiscountAmount ?? 0,   // ← أضف هاد
+                delivery_discount_type: orderData.deliveryDiscountType ?? null,    // ← وهاد
                 invoice_discount_amount: orderData.invoiceDiscountAmount ?? 0,
                 invoice_discount_type: orderData.invoiceDiscountType ?? null,
                 status: "Pending",
                 payment_method: orderData.paymentMethod,
                 payment_status: "Pending",
-                scheduled_at: orderData.scheduledAt || null
+                scheduled_at: orderData.scheduledAt || null,
+                notes: orderData.notes || null   // ✅ أضف هاد
             })
             .select("id")
             .single();

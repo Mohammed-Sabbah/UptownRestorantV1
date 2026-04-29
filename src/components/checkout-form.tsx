@@ -30,6 +30,7 @@ export default function CheckoutForm({ branch, settings, lang: initialLang }: Pr
     const [captchaToken, setCaptchaToken] = useState<string | null>(null);
     const [discountRules, setDiscountRules] = useState<any[]>([]);
     const [smartDeliveryDiscount, setSmartDeliveryDiscount] = useState(0);
+    const [activeDeliveryRule, setActiveDeliveryRule] = useState<any>(null);
     const [effectiveDeliveryFee, setEffectiveDeliveryFee] = useState<number | null>(null);
     const [invoiceItemRules, setInvoiceItemRules] = useState<any[]>([]);
     const [invoiceDiscount, setInvoiceDiscount] = useState(0);
@@ -181,6 +182,7 @@ export default function CheckoutForm({ branch, settings, lang: initialLang }: Pr
             }
 
             setSmartDeliveryDiscount(smartDiscountAmount);
+            setActiveDeliveryRule(orderType === "delivery" ? (discountRules.find((r: any) => itemsTotal >= r.min && (r.max === null || itemsTotal <= r.max)) ?? null) : null);
 
             const finalDeliveryFee =
                 orderType === "delivery"
@@ -397,10 +399,13 @@ export default function CheckoutForm({ branch, settings, lang: initialLang }: Pr
                 tableNumber: null,
                 totalAmount: freshTotal,
                 deliveryFee: freshEffectiveFee,
+                deliveryDiscountAmount: smartDeliveryDiscount,        // ← أضف هاد
+                deliveryDiscountType: activeDeliveryRule?.type ?? null, // ← وهاد
                 invoiceDiscountAmount: freshInvoiceDiscount,
                 invoiceDiscountType: freshInvoiceDiscountType,
                 paymentMethod: paymentMethod === 'cash' ? 'Cash' : 'Card',
-                scheduledAt: scheduledAt
+                scheduledAt: scheduledAt,
+                notes: notes || null,   // ✅ هون
             }, mappedItems, captchaToken || undefined);
 
             console.log("[Checkout] Order Save Result:", res);
@@ -733,12 +738,34 @@ export default function CheckoutForm({ branch, settings, lang: initialLang }: Pr
                                 </span>
                                 <span style={{ color: '#666', fontSize: '14px' }}>{isAr ? 'المجموع' : 'Subtotal'}: {subtotal.toFixed(2)}</span>
                             </div>
-                            {cartItems.map((item: any, i: number) => (
-                                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', marginBottom: '8px', color: '#666' }}>
-                                    <span>{item.quantity}x {isAr ? item.nameAr : item.nameEn}</span>
-                                    <span>{item.finalPrice.toFixed(2)}</span>
-                                </div>
-                            ))}
+                            {cartItems.map((item: any, i: number) => {
+                                const hasBranchDiscount =
+                                    (item.discountPercent ?? 0) > 0 &&
+                                    item.originalPrice != null &&
+                                    item.originalPrice > item.finalPrice;
+                                return (
+                                    <div key={i} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', marginBottom: '10px', color: '#666', alignItems: 'flex-start' }}>
+                                        <span style={{ flex: 1, paddingLeft: isAr ? '0' : '8px', paddingRight: isAr ? '8px' : '0' }}>
+                                            {item.quantity}x {isAr ? item.nameAr : item.nameEn}
+                                        </span>
+                                        <div style={{ textAlign: 'end', display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                            {hasBranchDiscount && (
+                                                <>
+                                                    <span style={{ textDecoration: 'line-through', opacity: 0.45, fontSize: '12px' }}>
+                                                        {(item.originalPrice * item.quantity).toFixed(2)} {settings.currencySymbol}
+                                                    </span>
+                                                    <span style={{ color: '#059669', fontSize: '11px', fontWeight: 700 }}>
+                                                        {isAr ? `خصم ${item.discountPercent}%` : `${item.discountPercent}% OFF`}
+                                                    </span>
+                                                </>
+                                            )}
+                                            <span style={{ fontWeight: hasBranchDiscount ? 800 : 400, color: hasBranchDiscount ? '#8B0000' : '#666' }}>
+                                                {(item.finalPrice * item.quantity).toFixed(2)} {settings.currencySymbol}
+                                            </span>
+                                        </div>
+                                    </div>
+                                );
+                            })}
 
                             <div style={{ marginTop: '20px', paddingTop: '15px', borderTop: '1px solid #f0f0f0' }}>
                                 {discount > 0 && (
@@ -755,7 +782,7 @@ export default function CheckoutForm({ branch, settings, lang: initialLang }: Pr
                                                 {isAr ? 'خصم الفاتورة' : 'Invoice Discount'}
                                                 {invoiceDiscountType === 'percentage'
                                                     ? ` (${invoiceItemRules.find((r: any) => subtotal >= r.min && (r.max === null || subtotal <= r.max))?.value ?? ''}%)`
-                                                    : ''}
+                                                    : ` (${invoiceDiscount.toFixed(2)} ${settings.currencySymbol})`}
                                             </span>
                                         </div>
                                         <span>-{invoiceDiscount.toFixed(2)} {settings.currencySymbol}</span>
@@ -765,7 +792,12 @@ export default function CheckoutForm({ branch, settings, lang: initialLang }: Pr
                                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: '#059669', fontWeight: 700, marginBottom: '8px' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
                                             <Sparkles size={14} />
-                                            <span>{isAr ? 'خصم التوصيل' : 'Delivery Discount'}</span>
+                                            <span>
+                                                {isAr ? 'خصم التوصيل' : 'Delivery Discount'}
+                                                {activeDeliveryRule?.type === 'percentage' && ` (${activeDeliveryRule.value}%)`}
+                                                {activeDeliveryRule?.type === 'fixed' && ` (${activeDeliveryRule.value} ${settings.currencySymbol})`}
+                                                {activeDeliveryRule?.type === 'free' && ` (مجاني)`}
+                                            </span>
                                         </div>
                                         <span>-{smartDeliveryDiscount.toFixed(2)} {settings.currencySymbol}</span>
                                     </div>

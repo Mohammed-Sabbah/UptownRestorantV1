@@ -15,6 +15,10 @@ const Cart = {
     addItem(branchSlug, product, quantity, selectedSize, selectedType, selectedAddOns, note, branchDiscount = 0) {
         if (!this._carts[branchSlug]) this._carts[branchSlug] = [];
         const finalPrice = this._calcPrice(product, selectedSize, selectedType, selectedAddOns, branchDiscount);
+        // ← السعر قبل خصم الفرع فقط
+        const priceBeforeBranchDiscount = this._calcPrice(product, selectedSize, selectedType, selectedAddOns, 0);
+        const discountAmount = priceBeforeBranchDiscount - finalPrice;
+
         this._carts[branchSlug].push({
             id: `${product.id}-${Date.now()}`,
             productId: product.id,
@@ -26,6 +30,9 @@ const Cart = {
             selectedAddOns: selectedAddOns || [],
             note: note || '',
             finalPrice,
+            originalPrice: priceBeforeBranchDiscount,   // ← جديد
+            discountAmount,                               // ← جديد
+            discountPercent: branchDiscount,              // ← جديد
             imagePath: product.imagePath,
             branchDiscount
         });
@@ -38,10 +45,19 @@ const Cart = {
         const idx = items.findIndex(i => i.id === itemId);
         if (idx === -1) return;
         const finalPrice = this._calcPrice(product, selectedSize, selectedType, selectedAddOns, branchDiscount);
-        items[idx] = { ...items[idx], quantity, selectedSize, selectedType, selectedAddOns, note, finalPrice, branchDiscount };
+        const priceBeforeBranchDiscount = this._calcPrice(product, selectedSize, selectedType, selectedAddOns, 0);
+        const discountAmount = priceBeforeBranchDiscount - finalPrice;
+        items[idx] = {
+            ...items[idx],
+            quantity, selectedSize, selectedType, selectedAddOns, note,
+            finalPrice,
+            originalPrice: priceBeforeBranchDiscount,
+            discountAmount,
+            discountPercent: branchDiscount,
+            branchDiscount
+        };
         this._save();
     },
-
     removeItem(branchSlug, itemId) {
         if (!this._carts[branchSlug]) return;
         this._carts[branchSlug] = this._carts[branchSlug].filter(i => i.id !== itemId);

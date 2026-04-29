@@ -45,6 +45,9 @@ export function AdminProductsTab({ products, categories, branches, settings, add
 
   const [loading, setLoading] = useState(false);
   const [formCategoryId, setFormCategoryId] = useState<number | null>(null);
+
+  const [formBranchId, setFormBranchId] = useState<number | null>(null);
+
   const editingProduct = useMemo(() => products.find(p => p.id === editId), [products, editId]);
 
 
@@ -79,6 +82,7 @@ export function AdminProductsTab({ products, categories, branches, settings, add
     setHasMealOption(false);
     setHasDonenessOption(false);
     setFamilySize(null);
+    setFormBranchId(null);
     setShowExtrasModal(false);
     if (autoSaveTimerRef.current) clearTimeout(autoSaveTimerRef.current);
   }, []);
@@ -179,9 +183,8 @@ export function AdminProductsTab({ products, categories, branches, settings, add
       (form.elements.namedItem("DescriptionEn") as HTMLTextAreaElement).value = data.descriptionEn || "";
       (form.elements.namedItem("BasePrice") as HTMLInputElement).value = String(data.basePrice ?? 0);
       (form.elements.namedItem("SortOrder") as HTMLInputElement).value = String(data.sortOrder ?? 0);
-      (form.elements.namedItem("CategoryId") as HTMLSelectElement).value = String(data.categoryId || "");
       setFormCategoryId(data.categoryId || null);
-      (form.elements.namedItem("BranchId") as HTMLSelectElement).value = data.branchId != null ? String(data.branchId) : "";
+      setFormBranchId(data.branchId ?? null);
       setIsAllBranches(!!data.allBranches);
       setIsActive(!!data.isActive);
       setHasMealOption(!!data.hasMealOption);
@@ -232,6 +235,7 @@ export function AdminProductsTab({ products, categories, branches, settings, add
       formRef.current?.reset();
       setEditId(0);
       setFormCategoryId(null);
+      setFormBranchId(null);
       setSizes([]);
       setTypes([]);
       setSimpleAddons([]);
@@ -407,7 +411,16 @@ export function AdminProductsTab({ products, categories, branches, settings, add
                 </div>
                 <div className="premium-input-group">
                   <label>Specific Branch</label>
-                  <select name="BranchId" className="premium-select" defaultValue="" onChange={handleFormChange}>
+                  <select
+                    name="BranchId"
+                    className="premium-select"
+                    value={formBranchId !== null ? String(formBranchId) : ""}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      setFormBranchId(val === "" ? null : Number(val));
+                      handleFormChange();
+                    }}
+                  >
                     <option value="">— (Category Default)</option>
                     {branches.map((branch) => (
                       <option value={branch.id} key={branch.id}>{branch.nameEn}</option>

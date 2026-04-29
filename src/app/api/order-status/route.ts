@@ -20,6 +20,8 @@ export async function GET(req: NextRequest) {
         order_type,
         total_amount,
         delivery_fee,
+        delivery_discount_amount,
+        delivery_discount_type,
         invoice_discount_amount,
         invoice_discount_type,
         created_at,
