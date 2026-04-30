@@ -954,7 +954,8 @@ function printViaSilentIframe(order: PrintOrder): Promise<void> {
     iframe.id = "__receipt_frame";
     // iframe.style.cssText =
     //   "position:fixed;top:0;left:0;width:80mm;height:90vh;border:2px solid red;opacity:1;z-index:9999;";
-    iframe.style.cssText = "width:80mm;height:100vh;";
+    iframe.style.cssText = "position:fixed;top:-9999px;left:-9999px;width:80mm;height:297mm;border:none;visibility:hidden;";
+
     document.body.appendChild(iframe);
 
     const html = buildReceiptHTML(order);
