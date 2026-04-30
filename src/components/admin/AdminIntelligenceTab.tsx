@@ -48,28 +48,71 @@ export function AdminIntelligenceTab({ orders: initialOrders = [], branches, rol
       const data = await res.json();
 
       // map snake_case from DB to camelCase Order type
-      const mapped: Order[] = (data.orders || []).map((o: any) => ({
-        id: o.id,
-        branchId: o.branch_id,
-        customerId: o.customer_id,
-        customerName: o.customer_name,
-        customerPhone: o.customer_phone,
-        customerEmail: o.customer_email || "",
-        orderType: o.order_type,
-        address: o.address,
-        tableNumber: o.table_number,
-        totalAmount: o.total_amount,
-        status: o.status,
-        paymentMethod: o.payment_method,
-        paymentStatus: o.payment_status,
-        createdAt: o.created_at,
-        deliveryFee: o.delivery_fee,
-        invoiceDiscountAmount: o.invoice_discount_amount,
-        invoiceDiscountType: o.invoice_discount_type,
-        branch: o.branch ? { ...o.branch, nameAr: o.branch.name_ar, nameEn: o.branch.name_en } : undefined,
-        items: o.order_items ?? undefined,
-        notes: o.notes || null,
-      }));
+      const mapped: Order[] = (data.orders || []).map((o: any) => {
+        const deliveryFee = Number(o.delivery_fee ?? 0);
+        const invoiceDiscount = Number(o.invoice_discount_amount ?? 0);
+        const deliveryDiscount = Number(o.delivery_discount_amount ?? 0);
+        const totalAmount = Number(o.total_amount ?? 0);
+
+        // subtotal = total + invoiceDiscount - deliveryFee
+        const subtotal = totalAmount + invoiceDiscount - deliveryFee;
+        // originalDeliveryFee = رسوم التوصيل قبل الخصم
+        const originalDeliveryFee = deliveryFee + deliveryDiscount;
+
+        return {
+          id: o.id,
+          branchId: o.branch_id,
+          customerId: o.customer_id,
+          customerName: o.customer_name,
+          customerPhone: o.customer_phone,
+          customerEmail: o.customer_email || "",
+          orderType: o.order_type,
+          address: o.address,
+          tableNumber: o.table_number,
+          totalAmount,
+          status: o.status,
+          paymentMethod: o.payment_method,
+          paymentStatus: o.payment_status,
+          createdAt: o.created_at,
+          notes: o.notes || null,
+
+          // ── أسعار وخصومات ─────────────────────────────────────
+          subtotal,
+          deliveryFee,
+          originalDeliveryFee,
+          invoiceDiscountAmount: invoiceDiscount,
+          invoiceDiscountType: o.invoice_discount_type ?? null,
+          deliveryDiscountAmount: deliveryDiscount,
+          deliveryDiscountType: o.delivery_discount_type ?? null,
+
+          // ── بيانات الفرع كاملة ──────────────────────────────
+          // الـ API الرئيسي بيرجع 'branches' (جمع)، والـ single order بيرجع 'branch'
+          branch: (() => {
+            const b = o.branch ?? o.branches;
+            if (!b) return undefined;
+            return {
+              ...b,
+              nameAr: b.name_ar ?? b.nameAr ?? "",
+              nameEn: b.name_en ?? b.nameEn ?? "",
+              phone: b.phone ?? "",
+              whatsApp: b.whats_app ?? b.whatsApp ?? "",
+            };
+          })(),
+
+          // ── أصناف الطلب — تحويل snake_case ────────────────────
+          items: o.order_items?.map((item: any) => ({
+            id: item.id,
+            orderId: item.order_id,
+            productId: item.product_id,
+            productNameAr: item.product_name_ar ?? "",
+            productNameEn: item.product_name_en ?? "",
+            quantity: item.quantity,
+            price: Number(item.price),
+            originalPrice: item.original_price ? Number(item.original_price) : null,
+            addonDetails: item.addon_details ?? null,
+          })) ?? [],
+        };
+      });
 
       setOrders(mapped);
       setLastUpdated(new Date());
