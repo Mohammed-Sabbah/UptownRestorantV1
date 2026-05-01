@@ -47,7 +47,7 @@ export default async function MenuPage({ params }: MenuPageProps) {
   }
 
   if (!branch) {
-    branch = { id: 0, slug: branchSlug, nameAr: "أبتاون", nameEn: "Uptown", discountPercent: 0, isActive: true, sortOrder: 0, deliveryFee: 0, deliveryZones: [], bannerImagePath: null, phone: "", whatsApp: "", latitude: null, longitude: null, openingTime: null, closingTime: null, createdAt: "", updatedAt: "" };
+    branch = { id: 0, slug: branchSlug, nameAr: "أبتاون", nameEn: "Uptown", discountPercent: 0, isActive: true, sortOrder: 0, deliveryFee: 0, deliveryZones: [], bannerImagePath: null, branchVideos: [], phone: "", whatsApp: "", latitude: null, longitude: null, openingTime: null, closingTime: null, createdAt: "", updatedAt: "" };
   }
 
   const currency = settings?.currencySymbol || "₪";
@@ -58,8 +58,17 @@ export default async function MenuPage({ params }: MenuPageProps) {
     "/images/panar2.jpeg"
   ];
 
-  // --- PROMO VIDEO ---
-  const promoVideo = "/images/video.mp4";
+  // --- PROMO VIDEOS CAROUSEL ---
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
+  const storageBucket = process.env.SUPABASE_STORAGE_BUCKET || "uploads";
+  const branchVideos = (branch?.branchVideos || []).map((v: any) => {
+    const path = v.path || "";
+    if (path.startsWith("http")) return path;
+    return `${supabaseUrl}/storage/v1/object/public/${storageBucket}/${path}`;
+  });
+  // fallback to old promo video URL if no uploaded videos
+  const fallbackVideo = branch?.promoVideoUrl || null;
+  const hasVideos = branchVideos.length > 0;
 
   return (
     <>
@@ -87,6 +96,37 @@ export default async function MenuPage({ params }: MenuPageProps) {
         }
         .full-video video, .full-video iframe { width: 100%; height: 100%; object-fit: cover; display: block; }
         .full-video iframe { border: none; }
+
+        /* VIDEO CAROUSEL */
+        .video-carousel { 
+          width: calc(100% - 30px); margin: 0 auto;
+          background: #000; aspect-ratio: 1 / 1; max-height: 550px;
+          position: relative; overflow: hidden; border-radius: 40px;
+          box-shadow: 0 15px 45px rgba(0,0,0,0.3);
+          touch-action: pan-y;
+        }
+        .video-carousel video { 
+          width: 100%; height: 100%; object-fit: cover; display: block; 
+          position: absolute; inset: 0;
+        }
+        .vc-dots { 
+          position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
+          display: flex; gap: 6px; z-index: 10;
+        }
+        .vc-dot { 
+          width: 8px; height: 8px; border-radius: 50%; 
+          background: rgba(255,255,255,0.5); border: none; cursor: pointer; padding: 0;
+          transition: background 0.3s, transform 0.3s;
+        }
+        .vc-dot.active { background: #fff; transform: scale(1.3); }
+        .vc-arrow {
+          position: absolute; top: 50%; transform: translateY(-50%);
+          background: rgba(0,0,0,0.4); color: #fff; border: none;
+          width: 36px; height: 36px; border-radius: 50%; font-size: 18px;
+          cursor: pointer; z-index: 10; display: flex; align-items: center; justify-content: center;
+        }
+        .vc-arrow.prev { left: 12px; }
+        .vc-arrow.next { right: 12px; }
 
         /* 🚀 STICKY FILTER: PRECISE ALIGNMENT */
         .sticky-category-bar { 
@@ -203,6 +243,56 @@ export default async function MenuPage({ params }: MenuPageProps) {
       <Script src="/js/language.js?v=15" strategy="beforeInteractive" />
       <Script src="/js/cart.js?v=15" strategy="beforeInteractive" />
       <Script src="/js/ui.js?v=15" strategy="afterInteractive" />
+      {hasVideos && branchVideos.length > 1 && (
+        <Script id="video-carousel-script" strategy="afterInteractive">{`
+          (function() {
+            var videos = document.querySelectorAll('#video-carousel-root video');
+            var dots = document.querySelectorAll('#vc-dots .vc-dot');
+            var current = 0;
+            var total = videos.length;
+            var transitioning = false;
+
+            function goTo(idx) {
+              if (transitioning || idx === current) return;
+              transitioning = true;
+              videos[current].style.opacity = '0';
+              videos[current].style.zIndex = '0';
+              videos[current].pause();
+              dots[current] && dots[current].classList.remove('active');
+              current = (idx + total) % total;
+              videos[current].style.opacity = '1';
+              videos[current].style.zIndex = '1';
+              videos[current].currentTime = 0;
+              videos[current].play();
+              dots[current] && dots[current].classList.add('active');
+              setTimeout(function() { transitioning = false; }, 600);
+            }
+
+            videos.forEach(function(v, i) {
+              v.addEventListener('ended', function() { goTo(i + 1); });
+            });
+
+            var prev = document.getElementById('vc-prev');
+            var next = document.getElementById('vc-next');
+            if (prev) prev.addEventListener('click', function() { goTo(current - 1); });
+            if (next) next.addEventListener('click', function() { goTo(current + 1); });
+            dots.forEach(function(dot) {
+              dot.addEventListener('click', function() { goTo(Number(dot.dataset.i)); });
+            });
+
+            // Swipe support
+            var startX = 0;
+            var root = document.getElementById('video-carousel-root');
+            if (root) {
+              root.addEventListener('touchstart', function(e) { startX = e.touches[0].clientX; }, { passive: true });
+              root.addEventListener('touchend', function(e) {
+                var diff = startX - e.changedTouches[0].clientX;
+                if (Math.abs(diff) > 50) goTo(diff > 0 ? current + 1 : current - 1);
+              }, { passive: true });
+            }
+          })();
+        `}</Script>
+      )}
 
       <div className="hero-gap" />
 
@@ -213,12 +303,41 @@ export default async function MenuPage({ params }: MenuPageProps) {
           </section>
         )}
 
-        {promoVideo && (
-          <section className="full-video">
-            {promoVideo.includes("youtube") || promoVideo.includes("vimeo")
-              ? <iframe src={promoVideo} allowFullScreen />
-              : <video src={promoVideo} autoPlay muted loop playsInline />}
-          </section>
+        {(hasVideos || fallbackVideo) && (
+          hasVideos ? (
+            <section className="video-carousel" id="video-carousel-root">
+              {branchVideos.map((src, i) => (
+                <video
+                  key={i}
+                  src={src}
+                  autoPlay={i === 0}
+                  preload="auto"
+                  muted
+                  playsInline
+                  loop={branchVideos.length === 1}
+                  data-index={i}
+                  style={{ opacity: i === 0 ? 1 : 0, transition: 'opacity 0.5s', zIndex: i === 0 ? 1 : 0 }}
+                />
+              ))}
+              {branchVideos.length > 1 && (
+                <>
+                  <button className="vc-arrow prev" id="vc-prev">‹</button>
+                  <button className="vc-arrow next" id="vc-next">›</button>
+                  <div className="vc-dots" id="vc-dots">
+                    {branchVideos.map((_, i) => (
+                      <button key={i} className={`vc-dot ${i === 0 ? 'active' : ''}`} data-i={i} />
+                    ))}
+                  </div>
+                </>
+              )}
+            </section>
+          ) : (
+            <section className="full-video">
+              {fallbackVideo && (fallbackVideo.includes("youtube") || fallbackVideo.includes("vimeo"))
+                ? <iframe src={fallbackVideo} allowFullScreen />
+                : <video src={fallbackVideo!} autoPlay muted loop playsInline />}
+            </section>
+          )
         )}
       </section>
 

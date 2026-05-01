@@ -124,6 +124,23 @@ export async function logoutAction() {
   redirect("/");
 }
 
+// export async function uploadBranchVideoAction(formData: FormData): Promise<{ success: boolean; path?: string; error?: string }> {
+//   try {
+//     await requireSession();
+//     const file = formData.get("video");
+//     if (!(file instanceof File) || file.size === 0) {
+//       return { success: false, error: "No video file provided." };
+//     }
+//     if (file.size > 100 * 1024 * 1024) {
+//       return { success: false, error: "Video must be under 100MB." };
+//     }
+//     const path = await saveUploadedFile(file, "branch-videos");
+//     return { success: true, path };
+//   } catch (err) {
+//     return { success: false, error: err instanceof Error ? err.message : "Failed to upload video." };
+//   }
+// }
+
 export async function saveBranchAction(formData: FormData): Promise<ActionResult> {
   try {
     await requireSession();
@@ -148,6 +165,7 @@ export async function saveBranchAction(formData: FormData): Promise<ActionResult
       delivery_discount_percent: toNumber(formData.get("DeliveryDiscountPercent")),
       is_free_delivery: toBoolean(formData.get("FreeDelivery")),
       promo_video_url: formData.get("PromoVideoUrl") ? String(formData.get("PromoVideoUrl")) : null,
+      branch_videos: parseJson<{ path: string; sort_order: number }[]>(formData.get("branchVideosJson")) ?? [],
       updated_at: new Date().toISOString()
     };
 

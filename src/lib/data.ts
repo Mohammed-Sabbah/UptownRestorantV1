@@ -52,6 +52,9 @@ function mapBranch(row: Record<string, unknown>): Branch {
     deliveryDiscountPercent: toNumber(row.delivery_discount_percent), // ← ناقص
     freeDelivery: Boolean(row.is_free_delivery),
     promoVideoUrl: (row.promo_video_url as string | null) ?? null,
+    branchVideos: ((row.branch_videos as any[]) ?? [])
+      .map((v: any) => ({ path: String(v.path ?? ""), sortOrder: Number(v.sort_order ?? v.sortOrder ?? 0) }))
+      .sort((a: any, b: any) => a.sortOrder - b.sortOrder),
     createdAt: String(row.created_at ?? ""),
     updatedAt: String(row.updated_at ?? "")
   };

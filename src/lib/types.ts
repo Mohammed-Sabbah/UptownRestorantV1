@@ -13,6 +13,7 @@ export type Branch = {
   phone: string;
   whatsApp: string;
   bannerImagePath: string | null;
+  branchVideos: any[];
   discountPercent: number;
   isActive: boolean;
   sortOrder: number;
